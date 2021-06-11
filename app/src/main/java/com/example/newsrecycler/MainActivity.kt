@@ -1,70 +1,58 @@
 package com.example.newsrecycler
 
-import android.net.Uri
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.Toast
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.JsonObjectRequest
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_first.*
 
-class MainActivity : AppCompatActivity(), NewsItemClicked {
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var mAdapter: NewsListAdapter
-    var url = "https://newsapi.org/v2/top-headlines?country=in&apiKey=eb4b2f06446646778b0ad91a33b33b24"
+    private lateinit var navController: NavController
+    private lateinit var  drawerLayout: DrawerLayout
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        recyclerView.layoutManager = LinearLayoutManager(this) //Idhar GridLayoutManager, StaggeredLayoutManager ye sab bhi hota hai
-        val items = fetchData()
-        mAdapter = NewsListAdapter( this)
-        recyclerView.adapter = mAdapter
+
+        navController = this.findNavController(R.id.fragment)
+        drawerLayout = findViewById(R.id.drawer_layout)
+
+        NavigationUI.setupActionBarWithNavController(this, navController, drawerLayout)
+
+        // prevent nav gesture if not on start destination
+//        navController.addOnDestinationChangedListener { nc: NavController, nd: NavDestination, args: Bundle? ->
+//            if (nd.id == nc.graph.startDestination) {
+//                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+//            } else {
+//                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+//            }
+//        }
+
+
+
+
+        NavigationUI.setupWithNavController(navigationView, navController)
+        
+
     }
 
-
-    private fun fetchData() {
-
-        val jsonObjectRequest = object: JsonObjectRequest(
-                Request.Method.GET, url, null,
-                {
-                    val newsJsonArray = it.getJSONArray("articles")
-                    val newsArray = ArrayList<News>()
-                    for(i in 0 until newsJsonArray.length()) {
-                        val newsJsonObject = newsJsonArray.getJSONObject(i)
-                        val news = News(
-                                newsJsonObject.getString("title"),
-                                newsJsonObject.getString("author"),
-                                newsJsonObject.getString("url"),
-                                newsJsonObject.getString("urlToImage")
-                        )
-                        newsArray.add(news)
-                    }
-
-                    mAdapter.updateNews(newsArray)
-                },
-                Response.ErrorListener {
-                }
-
-        ) {
-            override fun getHeaders(): MutableMap<String, String> {
-                val headers = HashMap<String, String>()
-                headers["User-Agent"] = "Mozilla/5.0"
-                return headers
-            }
-        }
-
-        MySingleton.getInstance(this).addToRequestQueue(jsonObjectRequest)
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = this.findNavController(R.id.fragment)
+        return NavigationUI.navigateUp(navController, drawerLayout)
     }
-
-    override fun onItemClicked(item: News) {
-        val builder = CustomTabsIntent.Builder();
-        val  customTabsIntent = builder.build();
-        customTabsIntent.launchUrl(this, Uri.parse(item.url));
-    }
-
 }

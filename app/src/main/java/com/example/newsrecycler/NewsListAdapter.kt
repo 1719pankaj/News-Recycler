@@ -38,6 +38,12 @@ class NewsListAdapter(private val listener: NewsItemClicked): RecyclerView.Adapt
         items.addAll(updatedNews)
         notifyDataSetChanged()
     }
+
+    fun clear() {
+        items.clear()
+        notifyDataSetChanged()
+    }
+
 }
 
     class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
